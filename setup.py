@@ -15,17 +15,18 @@ setup(
     entry_points={
         "console_scripts": ['djbeat = djbeat.djbeat:main']
     },
-    version='0.4.9',
+    version='0.5.0',
     description="A simple CLI tool for generating beat marks of music for FCPX and PRE",
     license="MIT",
     install_requires=[
-        'Cython',
-        'numpy',
-        'tqdm',
-        'madmom',
-        'librosa',
-        'pyfiglet',
-        'urllib3'
+        # Keep dependencies Apple Silicon friendly; madmom is now optional
+        'numpy>=1.22',
+        'scipy>=1.10',
+        'tqdm>=4.60',
+        'librosa>=0.10',
+        'audioread>=3.0.0',
+        'pyfiglet>=0.8',
+        'urllib3>=1.26'
     ],
     # long_description=long_descr,
     include_package_data=True,
