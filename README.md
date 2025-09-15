@@ -1,12 +1,12 @@
 
 <div align="center"><img style="display:inline-block" width='150' src="./assets/logo.png"/><p>
-    <span style="font-size: 14px">Version: 0.4.9</span><br>
+    <span style="font-size: 14px">Version: 0.5.0</span><br>
     <span>"A Simple Beat Time Marks Generator"</span><br>
     <span style="font-size: 12px;color= #95dafc">-- Created by <a>Kevin T. Lee</a> --</span>
     </p>
     <a href="./LICENSE"><img alt="MIT" src="https://img.shields.io/github/license/mashape/apistatus.svg?&url=LICENSE&longCache=true&style=for-the-badge"></a>
         <a href="http://lidengju.com"><img alt="Code" src="https://img.shields.io/badge/Code%20with-Love-red.svg?longCache=true&style=for-the-badge"></a>
-    <a href="https://github.com/kevinleeex/dj-beat/"><img alt="Version" src="https://img.shields.io/badge/Version-0.4.9-blue.svg?longCache=true&style=for-the-badge"></a>
+    <a href="https://github.com/kevinleeex/dj-beat/"><img alt="Version" src="https://img.shields.io/badge/Version-0.5.0-blue.svg?longCache=true&style=for-the-badge"></a>
 </div>
 
 # DJ-beat
@@ -19,7 +19,7 @@ Dj-beat is an easy-to-use generator that automatically detects audio beats and g
 
 A good music-driven video requires a perfect combination of sound and picture. Think about you're using the video editing software like Final Cut Pro X, you need to manually mark the place on the soundtrack that denotes the beat. Now, you have the **DJ-beat**, which can help you handle such a boring thing, mark, mark, mark...While it may do better than us. 
 
-Dj-beat is a simple tool developed based on python3 and madmom library, supports operating via command line and graphical interface*. The principle of the tool is the music beat tracking (based on multi-LSTM models and Dynamic Bayesian Network), then the tool output the XML file, which the FCPX and PRE can read.
+Dj-beat is a simple tool developed based on python3 and audio ML libraries, supports operating via command line and graphical interface*. As of 0.5.0 it is Apple Silicon (arm64) friendly: it uses librosa by default for beat tracking and will use madmom when available for parity with older versions.
 
 Learn more about **beat tracking**:
 
@@ -32,18 +32,20 @@ Learn more about **beat tracking**:
 ![preview](./assets/preview.png)
 
 ## :beer: Installation 
-### Requirements
-Cython==0.29.6  
-numpy==1.14.3
-> You may need to install the above two libs before you install the dj-beat.
+### Requirements (0.5.0+)
+- numpy>=1.22
+- scipy>=1.10
+- librosa>=0.10
+- audioread>=3.0.0
+- tqdm>=4.60
+- pyfiglet>=0.8
+- urllib3>=1.26
 
-madmom==0.16.1  
-tqdm==4.31.1  
-librosa==0.6.3  
+Optional for legacy accuracy parity:
+- madmom (if installed, will be used automatically)
 
 ```bash
 cd ./djbeat
-pip install -r bases.txt  
 pip install -r requirements.txt
 ```
 
@@ -59,7 +61,7 @@ pip install dj-beat
 ```bash
 $ git clone https://github.com/kevinleeex/dj-beat.git
 $ cd dj-beat
-$ pip setup.py install
+$ pip install .
 ```
 
 ## :star2: Usage
@@ -69,6 +71,9 @@ $ pip setup.py install
 ```bash
 $ djbeat -f ./test/treasure-trimed.wav -r 30
 ```
+
+Supported input formats: wav, mp3, m4a
+Note: On some systems, m4a decoding requires a system codec (e.g., ffmpeg). On macOS, CoreAudio usually handles it out of the box.
 
 #### Arguments
 

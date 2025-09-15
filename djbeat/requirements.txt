@@ -1,7 +1,8 @@
-Cython==0.29.6
-numpy==1.14.3
-tqdm==4.31.1
-madmom==0.16.1
-librosa==0.6.3
-pyfiglet==0.8.post1
-urllib3>=1.24.2
+# Minimal runtime deps for Apple Silicon (madmom optional)
+numpy>=1.22
+scipy>=1.10
+tqdm>=4.60
+librosa>=0.10
+audioread>=3.0.0
+pyfiglet>=0.8
+urllib3>=1.26

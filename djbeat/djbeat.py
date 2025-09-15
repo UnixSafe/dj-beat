@@ -2,9 +2,14 @@
 # author: Kevin T. Lee<hello@lidengju.com>
 # description: DJ-beat is available to detect the beat from the audio and generate time marks for FCPX and premiere.
 
-__version__ = '0.4.9'
+__version__ = '0.5.0'
 
-import madmom
+# Try to use madmom if available (original algorithm). Fallback to librosa otherwise
+try:
+    import madmom  # type: ignore
+except Exception:  # pragma: no cover - optional dependency
+    madmom = None
+
 import librosa
 import argparse
 import sys
@@ -20,8 +25,8 @@ from urllib.request import pathname2url
 
 class DJbeat(object):
 
-    # supported format list
-    ext_list = ['mp3', 'wav']
+    # supported format list (case-insensitive)
+    ext_list = ['mp3', 'wav', 'm4a']
 
     def __init__(self, filepath, fps=100, frame_rate=30, show_time=False):
         if not os.path.exists(filepath):
@@ -34,7 +39,7 @@ class DJbeat(object):
         self.fileext = ''
         if '.' in self.filename:
             self.file_name = self.filename.split('.')[0]
-            self.fileext = self.filename.split('.')[-1]
+            self.fileext = self.filename.split('.')[-1].lower()
         if self.fileext not in DJbeat.ext_list:
             raise Exception(
                 'Not supported file format, please use \'.mp3\', or \'.wav\'.')
@@ -51,15 +56,27 @@ class DJbeat(object):
     def proc_data(self):
         print('[Start processing the audio...It may take a while]')
         # y: original audio, sr: sample rate
-        self.y, self.audio_sr = librosa.load(self.filepath)
+        # mono=True for consistent beat tracking; librosa will downmix internally
+        self.y, self.audio_sr = librosa.load(self.filepath, mono=True)
         self.file_time = (1.0 * len(self.y) / self.audio_sr)
         self.file_real_length = int(self.file_time * 1000)
         self.file_length = int(self.file_time) * 1000
-        proc = madmom.features.beats.DBNBeatTrackingProcessor(look_ahead=0.4, fps=self.fps)
-        act = madmom.features.beats.RNNBeatProcessor()(self.filepath)
 
-        beat_times = proc(act)
+        # Prefer original madmom pipeline when available
+        if madmom is not None:
+            try:
+                proc = madmom.features.beats.DBNBeatTrackingProcessor(look_ahead=0.4, fps=self.fps)
+                act = madmom.features.beats.RNNBeatProcessor()(self.filepath)
+                beat_times = proc(act)
+                return beat_times
+            except Exception:
+                # Fall through to librosa-based tracker on any failure
+                print('[madmom backend unavailable; falling back to librosa beat tracker]')
 
+        # librosa fallback (Apple Silicon friendly)
+        # Estimate tempo and beat positions, return beat times in seconds
+        tempo, beat_frames = librosa.beat.beat_track(y=self.y, sr=self.audio_sr)
+        beat_times = librosa.frames_to_time(beat_frames, sr=self.audio_sr)
         return beat_times
 
     def gen_fcpxml(self):
@@ -114,7 +131,7 @@ def main():
     parser = argparse.ArgumentParser(
         description='DJ-beat, automatically mark the beat of your music for FCPX and PRE.')
     parser.add_argument('-f', '--filepath', default='', type=str,
-                        help='The filepath of the input audio, support wav and mp3.')
+                        help='The filepath of the input audio; supports wav, mp3, m4a (m4a may require a system decoder such as ffmpeg on some systems).')
     parser.add_argument('-r', '--frame_rate', default='30', choices=['23.98', '24', '25', '29.97', '30', '50', '60'],
                         help='The frame rate of your video setting.')
     parser.add_argument('-s', '--fps', default=100, type=int,
